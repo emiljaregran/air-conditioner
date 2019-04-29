@@ -87,6 +87,8 @@ public class AirconService
         }
         
         aircon.setTemperature(temperature);
+        DAO.updateAircon(aircon);
+        
         ResponseBody updated = new ResponseBody(200, "Temperature updated successfully.");
         RESTResponse restResponse = new RESTResponse(updated);
         return Response.ok(gson.toJson(restResponse)).build();
@@ -134,6 +136,8 @@ public class AirconService
         }
         
         aircon.setPowerConsumption(powerConsumption);
+        DAO.updateAircon(aircon);
+        
         ResponseBody updated = new ResponseBody(200, "Power consumption updated successfully.");
         RESTResponse restResponse = new RESTResponse(updated);
         return Response.ok(gson.toJson(restResponse)).build();
