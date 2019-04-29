@@ -1,34 +1,28 @@
 package server;
 
-import java.io.Serializable;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.SerializedName;
-@XmlRootElement(name = "aircon")
-
-
-public class Aircon implements Serializable
+public class Aircon
 {
-    private static final long serialVersionUID = 1L;
-    private String id;
-
-    public Aircon() {}
+    private final String id;
+    private float temperature;
     
-    public Aircon(String id)
+    public Aircon(String id, float temperature)
     {
         this.id = id;
+        this.temperature = temperature;
     }
     
-    @SerializedName("w")
     public String getId()
     {
         return id;
     }
-    
-    public void setId(String id)
+
+    public float getTemperature()
     {
-        this.id = id;
+        return temperature;
+    }
+
+    public void setTemperature(float temperature)
+    {
+        this.temperature = temperature;
     }
 }
