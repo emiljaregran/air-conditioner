@@ -25,7 +25,8 @@ public class AirconService
     @Produces (MediaType.APPLICATION_JSON)
     public Response getAllAircons()
     {
-        RESTResponse restResponse = new RESTResponse(DAO.getAllAircons());
+        RESTResponse restResponse = new RESTResponse();
+        restResponse.setAircons(DAO.getAllAircons());
         return Response.ok(gson.toJson(restResponse)).build();
     }
     
@@ -49,7 +50,6 @@ public class AirconService
     @Produces (MediaType.APPLICATION_JSON)
     public Response getTemperature(@PathParam("id") String id)
     {
-        RESTResponse restResponse;
         Aircon aircon = DAO.getAirconById(id);
         
         if (aircon == null)
@@ -57,7 +57,8 @@ public class AirconService
             return airconNotFound(id);
         }
         
-        restResponse = new RESTResponse(aircon.getTemperature());
+        RESTResponse restResponse = new RESTResponse();
+        restResponse.setTemperature(aircon.getTemperature());
         return Response.ok(gson.toJson(restResponse)).build();
     }
     
@@ -90,7 +91,8 @@ public class AirconService
         DAO.updateAircon(aircon);
         
         ResponseBody updated = new ResponseBody(200, "Temperature updated successfully.");
-        RESTResponse restResponse = new RESTResponse(updated);
+        RESTResponse restResponse = new RESTResponse();
+        restResponse.setResponse(updated);
         return Response.ok(gson.toJson(restResponse)).build();
     }
     
@@ -106,7 +108,8 @@ public class AirconService
             return airconNotFound(id);
         }
         
-        RESTResponse restResponse = new RESTResponse(aircon.getPowerConsumption());
+        RESTResponse restResponse = new RESTResponse();
+        restResponse.setPowerConsumption(aircon.getPowerConsumption());
         return Response.ok(gson.toJson(restResponse)).build();
     }
     
@@ -139,21 +142,75 @@ public class AirconService
         DAO.updateAircon(aircon);
         
         ResponseBody updated = new ResponseBody(200, "Power consumption updated successfully.");
-        RESTResponse restResponse = new RESTResponse(updated);
+        RESTResponse restResponse = new RESTResponse();
+        restResponse.setResponse(updated);
+        return Response.ok(gson.toJson(restResponse)).build();
+    }
+    
+    @GET
+    @Path("/{id}/electricityPrice")
+    @Produces (MediaType.APPLICATION_JSON)
+    public Response getElectricityPrice(@PathParam("id") String id)
+    {
+        Aircon aircon = DAO.getAirconById(id);
+        
+        if (aircon == null)
+        {
+            return airconNotFound(id);
+        }
+        
+        RESTResponse restResponse = new RESTResponse();
+        restResponse.setElectricityPrice(aircon.getElectricityPrice());
+        return Response.ok(gson.toJson(restResponse)).build();
+    }
+    
+    @POST
+    @Path("/{id}/electricityPrice")
+    @Produces (MediaType.APPLICATION_JSON)
+    public Response setElectricityPrice(@PathParam("id") String id, String json)
+    {
+        Aircon aircon = DAO.getAirconById(id);
+        JsonParser parser = new JsonParser();
+        JsonObject rootObj;
+        float electricityPrice;
+        
+        if (aircon == null)
+        {
+            return airconNotFound(id);
+        }
+
+        try
+        {
+            rootObj = parser.parse(json).getAsJsonObject();
+            electricityPrice = rootObj.get("electricityPrice").getAsFloat();          
+        }
+        catch (JsonSyntaxException | NullPointerException e)
+        {
+            return wrongJsonFormat("electricityPrice");
+        }
+        
+        aircon.setElectricityPrice(electricityPrice);
+        DAO.updateAircon(aircon);
+        
+        ResponseBody updated = new ResponseBody(200, "Electricity price updated successfully.");
+        RESTResponse restResponse = new RESTResponse();
+        restResponse.setResponse(updated);
         return Response.ok(gson.toJson(restResponse)).build();
     }
     
     private Response wrongJsonFormat(String parameter)
     {
         ResponseBody error = new ResponseBody(400, "Wrong format. Use {\"" + parameter + "\": value}");
-        RESTResponse restResponse = new RESTResponse(error);
+        RESTResponse restResponse = new RESTResponse();
+        restResponse.setResponse(error);
         return Response.status(Response.Status.BAD_REQUEST).entity(gson.toJson(restResponse)).build();
     }
     
     private Response airconNotFound(String id)
     {
         ResponseBody error = new ResponseBody(404, "Sorry, Aircon " + id + " not found in the database.");
-        RESTResponse restResponse = new RESTResponse(error);
+        RESTResponse restResponse = new RESTResponse();
+        restResponse.setResponse(error);
         return Response.status(Response.Status.NOT_FOUND).entity(gson.toJson(restResponse)).build();
     }
 }

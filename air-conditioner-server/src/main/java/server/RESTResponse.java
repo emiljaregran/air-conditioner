@@ -9,25 +9,31 @@ public class RESTResponse
     List<ResponseBody> response = null;
     Float temperature = null;
     Integer powerConsumption = null;
+    Float electricityPrice = null;
     
-    public RESTResponse(List<Aircon> aircons)
+    public void setAircons(List<Aircon> aircons)
     {
         this.aircons = aircons;
     }
     
-    public RESTResponse(ResponseBody response)
+    public void setResponse(ResponseBody response)
     {
         this.response = new ArrayList<>();
         this.response.add(response);
     }
     
-    public RESTResponse(float temperature)
+    public void setTemperature(float temperature)
     {
         this.temperature = temperature;
     }
     
-    public RESTResponse(int powerConsumption)
+    public void setPowerConsumption(int powerConsumption)
     {
         this.powerConsumption = powerConsumption;
+    }
+    
+    public void setElectricityPrice(float electricityPrice)
+    {
+        this.electricityPrice = electricityPrice;
     }
 }
