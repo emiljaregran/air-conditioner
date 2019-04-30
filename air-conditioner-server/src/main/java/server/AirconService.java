@@ -16,9 +16,11 @@ import javax.ws.rs.core.Response;
 
 public class AirconService
 {
-    private final static IAirconDAO DAO = new AirconDAO();
     private final GsonBuilder builder = new GsonBuilder();
     private final Gson gson = builder.setPrettyPrinting().create();
+    
+    //private final static IAirconDAO DAO = new AirconDAO();
+    private final static IAirconDAO DAO = new AirconDBDAO();
             
     @GET
     @Path("/")

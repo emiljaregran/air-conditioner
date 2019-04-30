@@ -3,17 +3,23 @@ package server;
 public class Aircon
 {
     private final String id;
-    private float temperature;
-    private int powerConsumption;
-    private float electricityPrice;
+    private Float temperature;
+    private String temperatureUnit;
+    private Integer powerConsumption;
+    private Float electricityPrice;
+    private String electricityPriceUnit;
     
     
-    public Aircon(String id, float temperature, int powerConsumption, float electricityPrice)
+    public Aircon(String id, Float temperature, String temperatureUnit,
+            Integer powerConsumption, Float electricityPrice,
+            String electricityPriceUnit)
     {
         this.id = id;
         this.temperature = temperature;
+        this.temperatureUnit = temperatureUnit;
         this.powerConsumption = powerConsumption;
         this.electricityPrice = electricityPrice;
+        this.electricityPriceUnit = electricityPriceUnit;
     }
     
     public String getId()
@@ -21,7 +27,7 @@ public class Aircon
         return id;
     }
 
-    public float getTemperature()
+    public Float getTemperature()
     {
         return temperature;
     }
@@ -31,7 +37,7 @@ public class Aircon
         this.temperature = temperature;
     }
     
-    public int getPowerConsumption()
+    public Integer getPowerConsumption()
     {
         return powerConsumption;
     }
@@ -41,7 +47,7 @@ public class Aircon
         this.powerConsumption = powerConsumption;
     }
     
-    public float getElectricityPrice()
+    public Float getElectricityPrice()
     {
         return electricityPrice;
     }

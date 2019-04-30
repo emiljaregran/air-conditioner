@@ -9,9 +9,9 @@ public class AirconDAO implements IAirconDAO
     
     public AirconDAO()
     {
-        aircons.add(new Aircon("A", 12.2f, 10, 1.3f));
-        aircons.add(new Aircon("B", 23.1f, 20, 1.1f));
-        aircons.add(new Aircon("C", 88.9f, 30, 1.4f));
+        aircons.add(new Aircon("A", 12.2f, "°C", 10, 1.3f, "SEK"));
+        aircons.add(new Aircon("B", 23.1f, "°C", 20, 1.1f, "SEK"));
+        aircons.add(new Aircon("C", 88.9f, "°C", 30, 1.4f, "SEK"));
     }
     
     @Override
