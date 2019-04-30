@@ -26,3 +26,4 @@ hs_err_pid*
 
 # Database settings file
 dbSettings.properties
+/air-conditioner-price/target/

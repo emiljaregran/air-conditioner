@@ -33,13 +33,13 @@ public class Sensor
         DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 	Date date = new Date();
         
-	System.out.println(dateFormat.format(date) + "  " + name + " " +
-                           temperature + " °C  " + powerConsumption + " W");
+	System.out.println("[" + dateFormat.format(date) + "]  Aircon " + name + 
+                        "  " + temperature + " °C  " + powerConsumption + " W");
         System.out.println(sendTemperature(name, temperature));
         System.out.println(sendPowerConsumption(name, powerConsumption));
     }
     
-    private Double getRandomTemperature()
+    private double getRandomTemperature()
     {
         double temperature = 20.0f + getRandomDoubleBetweenRange(5.0, 10.0);
         temperature = Math.round(temperature * 10.0) / 10.0;
@@ -47,9 +47,9 @@ public class Sensor
         return temperature;
     }
     
-    private Double getRandomDoubleBetweenRange(double min, double max)
+    private double getRandomDoubleBetweenRange(double min, double max)
     {
-        double number = (Math.random()*((max-min)+1))+min;
+        double number = (Math.random() * ((max - min) + 1)) + min;
         return number;
     }
     
