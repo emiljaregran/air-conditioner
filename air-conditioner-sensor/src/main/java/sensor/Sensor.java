@@ -9,10 +9,8 @@ import com.google.gson.JsonParser;
 import com.sun.jersey.api.client.*;
 import com.sun.jersey.api.client.config.*;
 import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
@@ -27,13 +25,9 @@ public class Sensor
     private final GsonBuilder builder = new GsonBuilder();
     private final Gson gson = builder.setPrettyPrinting().create();
     
-    private final static DecimalFormat decimalFormat = new DecimalFormat("0.0");
-    
     private Sensor(String name)
     {  
-        double temperature = 20.0f + getRandomDoubleBetweenRange(5.0, 10.0);
-        temperature = Math.round(temperature * 10.0) / 10.0;
-        
+        double temperature = getRandomTemperature();        
         int powerConsumption = (int)((temperature - 20.0) * 1324);
         
         DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -43,6 +37,14 @@ public class Sensor
                            temperature + " °C  " + powerConsumption + " W");
         System.out.println(sendTemperature(name, temperature));
         System.out.println(sendPowerConsumption(name, powerConsumption));
+    }
+    
+    private Double getRandomTemperature()
+    {
+        double temperature = 20.0f + getRandomDoubleBetweenRange(5.0, 10.0);
+        temperature = Math.round(temperature * 10.0) / 10.0;
+        
+        return temperature;
     }
     
     private Double getRandomDoubleBetweenRange(double min, double max)
