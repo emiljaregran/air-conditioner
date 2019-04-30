@@ -2,8 +2,8 @@ package server;
 
 public class ResponseBody
 {
-    int code;
-    String message;
+    private final int code;
+    private final String message;
     
     public ResponseBody(int code, String message)
     {

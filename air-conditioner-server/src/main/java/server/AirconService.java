@@ -198,6 +198,21 @@ public class AirconService
         return Response.ok(gson.toJson(restResponse)).build();
     }
     
+    @GET
+    @Path("/{id}/temperaturesLast24h")
+    @Produces (MediaType.APPLICATION_JSON)
+    public Response getTemperaturesLast24h(@PathParam("id") String id)
+    {
+        Aircon aircon = DAO.getAirconById(id);
+        
+        if (aircon == null)
+        {
+            return airconNotFound(id);
+        }
+        
+        return Response.ok("IMPLEMENT ME!").build();
+    }
+    
     private Response wrongJsonFormat(String parameter)
     {
         ResponseBody error = new ResponseBody(400, "Wrong format. Use {\"" + parameter + "\": value}");
