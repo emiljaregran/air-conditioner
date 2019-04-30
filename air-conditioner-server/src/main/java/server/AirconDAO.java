@@ -47,4 +47,52 @@ public class AirconDAO implements IAirconDAO
             }
         }
     }
+    
+    @Override
+    public TemperatureSummary getTemperatureSummary(String id)
+    {
+        TemperatureSummary temperatureSummary = null;
+        
+        for (Aircon aircon : aircons)
+        {
+            if (aircon.getId().equals(id))
+            {
+                temperatureSummary = new TemperatureSummary();
+        
+                for (int i = 0; i < 24; i++)
+                {
+                    temperatureSummary.addTemperature(i, i + 2);  
+                }
+
+                temperatureSummary.setAverageTemperature(14.4f);
+                temperatureSummary.setMaxTemperature(28.2f);
+                temperatureSummary.setMinTemperature(2.6f);
+            }
+        }
+        
+        return temperatureSummary;
+    }
+    
+    @Override
+    public ElectricitySummary getElectricitySummary(String id)
+    {
+        ElectricitySummary electricitySummary = null;
+        
+        for (Aircon aircon : aircons)
+        {
+            if (aircon.getId().equals(id))
+            {
+                electricitySummary = new ElectricitySummary();
+                
+            }
+        }
+        
+        return electricitySummary;
+    }
+    
+    @Override
+    public String getHighestPowerConsumptionAircon()
+    {
+        return "B";
+    }
 }

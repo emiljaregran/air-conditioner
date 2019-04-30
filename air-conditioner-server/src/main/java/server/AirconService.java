@@ -199,18 +199,45 @@ public class AirconService
     }
     
     @GET
-    @Path("/{id}/temperaturesLast24h")
+    @Path("/{id}/temperatureSummary")
     @Produces (MediaType.APPLICATION_JSON)
-    public Response getTemperaturesLast24h(@PathParam("id") String id)
+    public Response getTemperatureSummary(@PathParam("id") String id)
     {
-        Aircon aircon = DAO.getAirconById(id);
+        TemperatureSummary temperatureSummary = DAO.getTemperatureSummary(id);
         
-        if (aircon == null)
+        if (temperatureSummary == null)
         {
             return airconNotFound(id);
         }
         
-        return Response.ok("IMPLEMENT ME!").build();
+        return Response.ok(gson.toJson(temperatureSummary)).build();
+    }
+
+    @GET
+    @Path("/{id}/electricitySummary")
+    @Produces (MediaType.APPLICATION_JSON)
+    public Response getElectricitySummary(@PathParam("id") String id)
+    {
+        ElectricitySummary electricitySummary = DAO.getElectricitySummary(id);
+        
+        if (electricitySummary == null)
+        {
+            return airconNotFound(id);
+        }
+        
+        return Response.ok(gson.toJson(electricitySummary)).build();
+    }
+    
+    @GET
+    @Path("/highestPowerConsumption")
+    @Produces (MediaType.APPLICATION_JSON)
+    public Response getHighestPowerConsumptionAircon()
+    {
+        String airconId = DAO.getHighestPowerConsumptionAircon();
+        RESTResponse restResponse = new RESTResponse();
+        restResponse.setHighestPowerConsumptionAircon(airconId);
+        
+        return Response.ok(gson.toJson(restResponse)).build();
     }
     
     private Response wrongJsonFormat(String parameter)

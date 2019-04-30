@@ -10,6 +10,7 @@ public class RESTResponse
     Float temperature = null;
     Integer powerConsumption = null;
     Float electricityPrice = null;
+    String id = null;
     
     public void setAircons(List<Aircon> aircons)
     {
@@ -35,5 +36,10 @@ public class RESTResponse
     public void setElectricityPrice(float electricityPrice)
     {
         this.electricityPrice = electricityPrice;
+    }
+    
+    public void setHighestPowerConsumptionAircon(String id)
+    {
+        this.id = id;
     }
 }
