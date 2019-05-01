@@ -201,7 +201,7 @@ public class AirconService
     }
     
     @GET
-    @Path("/{id}/temperatureSummary")
+    @Path("/{id}/temperatureSummary24h")
     @Produces (MediaType.APPLICATION_JSON)
     public Response getTemperatureSummary(@PathParam("id") String id)
     {
@@ -216,7 +216,7 @@ public class AirconService
     }
 
     @GET
-    @Path("/{id}/electricitySummary")
+    @Path("/{id}/electricitySummary24h")
     @Produces (MediaType.APPLICATION_JSON)
     public Response getElectricitySummary(@PathParam("id") String id)
     {

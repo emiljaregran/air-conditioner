@@ -12,6 +12,7 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -136,7 +137,7 @@ public class AirconDBDAO implements IAirconDAO
     @Override
     public void updateAircon(Aircon aircon)
     {
-        Map<String, Integer> currentDateTime = getCurrentDateTime();
+        Map<String, Integer> currentDateTime = getDateTime(new Date());
         String sqlQuery;
         
         if (currentHourMeasurementExists(aircon.getId()))
@@ -200,13 +201,378 @@ public class AirconDBDAO implements IAirconDAO
     @Override
     public ElectricitySummary getElectricitySummary(String id)
     {
-        return new ElectricitySummary();
+        if (!airconExists(id))
+        {
+            return null;
+        }
+        
+        Map<String, Integer> current = getDateTime(new Date());
+        Map<String, Integer> oneDayBefore = getDateTime(getOneDayBeforeDate());
+        
+        int currentDateId = getDateId(current.get("year"), current.get("month"),
+                                      current.get("day"));
+        
+        int oneDayBeforeDateId = getDateId(oneDayBefore.get("year"),
+                            oneDayBefore.get("month"), oneDayBefore.get("day"));   
+        
+        float totalConsumedElectricity24h = getTotalConsumedElectricity24h(id,
+                currentDateId, oneDayBeforeDateId, current.get("hour"),
+                oneDayBefore.get("hour"));
+        
+        float electricityCost24h = getElectricityCost24h(id,
+                currentDateId, oneDayBeforeDateId, current.get("hour"),
+                oneDayBefore.get("hour"));
+        
+        int averagePowerConsumption24h = getAveragePowerConsumption24h(id,
+                currentDateId, oneDayBeforeDateId, current.get("hour"),
+                oneDayBefore.get("hour"));
+        
+        int maxPowerConsumption24h = getMaxPowerConsumption24h(id,
+                currentDateId, oneDayBeforeDateId, current.get("hour"),
+                oneDayBefore.get("hour"));
+        
+        int minPowerConsumption24h = getMinPowerConsumption24h(id,
+                currentDateId, oneDayBeforeDateId, current.get("hour"),
+                oneDayBefore.get("hour"));
+        
+        int highestElectricityPriceHour = getHighestElectricityPriceHour(id,
+                currentDateId, oneDayBeforeDateId, current.get("hour"),
+                oneDayBefore.get("hour"));
+        
+        int lowestElectricityPriceHour = getLowestElectricityPriceHour(id,
+                currentDateId, oneDayBeforeDateId, current.get("hour"),
+                oneDayBefore.get("hour"));
+        
+        String electricityPriceUnit = getElectricityPriceUnit(id);
+        
+        return new ElectricitySummary(totalConsumedElectricity24h,
+                    electricityCost24h, electricityPriceUnit,
+                    averagePowerConsumption24h, maxPowerConsumption24h,
+                    minPowerConsumption24h, highestElectricityPriceHour,
+                    lowestElectricityPriceHour);
     }
     
     @Override
     public String getHighestPowerConsumptionAircon()
     {
        return "B";
+    }
+    
+    private float getElectricityCost24h(String id, int currentDateId, 
+            int oneDayBeforeDateId, int currentHour, int oneDayBeforeHour)
+    {
+        Float electricityCost = null;
+        
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT SUM((powerConsumption / 1000) * electricityPrice) "
+                  + "as electricityCost " 
+                  + "FROM fact_readings " 
+                  + "INNER JOIN dim_aircons on dim_aircons.id = "
+                  + "fact_readings.airconId "
+                  + "RIGHT JOIN dim_date on dim_date.id = fact_readings.dateId "
+                  + "LEFT JOIN dim_time on dim_time.id = fact_readings.timeId "
+                  + "WHERE name = ? " 
+                  + "AND ((dateId = ? AND hour BETWEEN ? AND 23) "
+                  + "OR (dateId = ? AND hour BETWEEN 0 AND ?));");
+            
+            statement.setString(1, id);
+            statement.setInt(2, oneDayBeforeDateId);
+            statement.setInt(3, oneDayBeforeHour);
+            statement.setInt(4, currentDateId);
+            statement.setInt(5, currentHour);
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                electricityCost = result.getFloat("electricityCost");
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return electricityCost;
+    }
+    
+    private String getElectricityPriceUnit(String id)
+    {
+        String electricityPriceUnit = null;
+        
+        try (Connection connection = DriverManager.getConnection(
+                        dbSettings.getProperty("connectionString"),
+                        dbSettings.getProperty("name"),
+                        dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT electricityPriceUnit "
+                  + "FROM dim_aircons WHERE name = ?;");
+            
+            statement.setString(1, id);
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                electricityPriceUnit = result.getString("electricityPriceUnit");
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return electricityPriceUnit; 
+    }
+    
+    private int getLowestElectricityPriceHour(String id, int currentDateId, 
+            int oneDayBeforeDateId, int currentHour, int oneDayBeforeHour)
+    {
+        Integer lowestElectricityPriceHour = null;
+        
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT hour FROM fact_readings "
+                  + "INNER JOIN dim_aircons on dim_aircons.id = "
+                  + "fact_readings.airconId " 
+                  + "RIGHT JOIN dim_date on dim_date.id = fact_readings.dateId "
+                  + "LEFT JOIN dim_time on dim_time.id = fact_readings.timeId "
+                  + "WHERE name = ? " 
+                  + "AND ((dateId = ? AND hour BETWEEN ? AND 23) "
+                  + "OR (dateId = ? AND hour BETWEEN 0 AND ?)) "
+                  + "ORDER BY electricityPrice ASC LIMIT 1;");
+            
+            statement.setString(1, id);
+            statement.setInt(2, oneDayBeforeDateId);
+            statement.setInt(3, oneDayBeforeHour);
+            statement.setInt(4, currentDateId);
+            statement.setInt(5, currentHour);
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                lowestElectricityPriceHour = result.getInt("hour");
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return lowestElectricityPriceHour;
+    }
+    
+    private int getHighestElectricityPriceHour(String id, int currentDateId, 
+            int oneDayBeforeDateId, int currentHour, int oneDayBeforeHour)
+    {
+        Integer highestElectricityPriceHour = null;
+        
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT hour FROM fact_readings "
+                  + "INNER JOIN dim_aircons on dim_aircons.id = "
+                  + "fact_readings.airconId " 
+                  + "RIGHT JOIN dim_date on dim_date.id = fact_readings.dateId "
+                  + "LEFT JOIN dim_time on dim_time.id = fact_readings.timeId "
+                  + "WHERE name = ? " 
+                  + "AND ((dateId = ? AND hour BETWEEN ? AND 23) "
+                  + "OR (dateId = ? AND hour BETWEEN 0 AND ?)) "
+                  + "ORDER BY electricityPrice DESC LIMIT 1;");
+            
+            statement.setString(1, id);
+            statement.setInt(2, oneDayBeforeDateId);
+            statement.setInt(3, oneDayBeforeHour);
+            statement.setInt(4, currentDateId);
+            statement.setInt(5, currentHour);
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                highestElectricityPriceHour = result.getInt("hour");
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return highestElectricityPriceHour;
+    }
+    
+    private int getMinPowerConsumption24h(String id, int currentDateId, 
+            int oneDayBeforeDateId, int currentHour, int oneDayBeforeHour)
+    {
+        Integer minConsumption = null;
+        
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT MIN(powerConsumption) AS minConsumption " 
+                  + "FROM fact_readings INNER JOIN dim_aircons on " 
+                  + "dim_aircons.id = fact_readings.airconId "
+                  + "RIGHT JOIN dim_date on dim_date.id = fact_readings.dateId "
+                  + "LEFT JOIN dim_time on dim_time.id = fact_readings.timeId "
+                  + "WHERE name = ? "
+                  + "AND ((dateId = ? AND hour BETWEEN ? AND 23) "
+                  + "OR (dateId = ? AND hour BETWEEN 0 AND ?)) "
+                  + "ORDER BY dim_date.id DESC, dim_time.id DESC;");
+            
+            statement.setString(1, id);
+            statement.setInt(2, oneDayBeforeDateId);
+            statement.setInt(3, oneDayBeforeHour);
+            statement.setInt(4, currentDateId);
+            statement.setInt(5, currentHour);
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                minConsumption = result.getInt("minConsumption");
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return minConsumption;
+    }
+    
+    private int getMaxPowerConsumption24h(String id, int currentDateId, 
+            int oneDayBeforeDateId, int currentHour, int oneDayBeforeHour)
+    {
+        Integer maxConsumption = null;
+        
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT MAX(powerConsumption) AS maxConsumption " 
+                  + "FROM fact_readings INNER JOIN dim_aircons on " 
+                  + "dim_aircons.id = fact_readings.airconId "
+                  + "RIGHT JOIN dim_date on dim_date.id = fact_readings.dateId "
+                  + "LEFT JOIN dim_time on dim_time.id = fact_readings.timeId "
+                  + "WHERE name = ? "
+                  + "AND ((dateId = ? AND hour BETWEEN ? AND 23) "
+                  + "OR (dateId = ? AND hour BETWEEN 0 AND ?)) "
+                  + "ORDER BY dim_date.id DESC, dim_time.id DESC;");
+            
+            statement.setString(1, id);
+            statement.setInt(2, oneDayBeforeDateId);
+            statement.setInt(3, oneDayBeforeHour);
+            statement.setInt(4, currentDateId);
+            statement.setInt(5, currentHour);
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                maxConsumption = result.getInt("maxConsumption");
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return maxConsumption;
+    }
+    
+    private int getAveragePowerConsumption24h(String id, int currentDateId, 
+            int oneDayBeforeDateId, int currentHour, int oneDayBeforeHour)
+    {
+        Integer averageConsumption = null;
+        
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT AVG(powerConsumption) AS averageConsumption " 
+                  + "FROM fact_readings INNER JOIN dim_aircons on " 
+                  + "dim_aircons.id = fact_readings.airconId "
+                  + "RIGHT JOIN dim_date on dim_date.id = fact_readings.dateId "
+                  + "LEFT JOIN dim_time on dim_time.id = fact_readings.timeId "
+                  + "WHERE name = ? "
+                  + "AND ((dateId = ? AND hour BETWEEN ? AND 23) "
+                  + "OR (dateId = ? AND hour BETWEEN 0 AND ?)) "
+                  + "ORDER BY dim_date.id DESC, dim_time.id DESC;");
+            
+            statement.setString(1, id);
+            statement.setInt(2, oneDayBeforeDateId);
+            statement.setInt(3, oneDayBeforeHour);
+            statement.setInt(4, currentDateId);
+            statement.setInt(5, currentHour);
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                averageConsumption = result.getInt("averageConsumption");
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return averageConsumption;
+    }
+    
+    private float getTotalConsumedElectricity24h(String id, int currentDateId, 
+            int oneDayBeforeDateId, int currentHour, int oneDayBeforeHour)
+    {
+        Integer totalConsumption = null;
+        
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT SUM(powerConsumption) AS totalConsumption " 
+                  + "FROM fact_readings INNER JOIN dim_aircons on " 
+                  + "dim_aircons.id = fact_readings.airconId "
+                  + "RIGHT JOIN dim_date on dim_date.id = fact_readings.dateId "
+                  + "LEFT JOIN dim_time on dim_time.id = fact_readings.timeId "
+                  + "WHERE name = ? "
+                  + "AND ((dateId = ? AND hour BETWEEN ? AND 23) "
+                  + "OR (dateId = ? AND hour BETWEEN 0 AND ?)) "
+                  + "ORDER BY dim_date.id DESC, dim_time.id DESC;");
+            
+            statement.setString(1, id);
+            statement.setInt(2, oneDayBeforeDateId);
+            statement.setInt(3, oneDayBeforeHour);
+            statement.setInt(4, currentDateId);
+            statement.setInt(5, currentHour);
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                totalConsumption = result.getInt("totalConsumption");
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return totalConsumption / 1000.0f;
     }
     
     private List<String> getAllAirconIds()
@@ -237,7 +603,7 @@ public class AirconDBDAO implements IAirconDAO
     private boolean currentHourMeasurementExists(String id)
     {
         boolean exists = false;
-        Map<String, Integer> currentDateTime = getCurrentDateTime();
+        Map<String, Integer> currentDateTime = getDateTime(new Date());
         
         try (Connection connection = DriverManager.getConnection(
                     dbSettings.getProperty("connectionString"),
@@ -311,6 +677,69 @@ public class AirconDBDAO implements IAirconDAO
         return exists;
     }
     
+    private int getTimeId(int hour)
+    {
+        Integer timeId = null;
+        
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT id FROM dim_time WHERE hour = ?;");
+            
+            statement.setInt(1, hour);
+            
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                timeId = result.getInt("id");
+            }
+            
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return timeId;
+    }
+    
+    private int getDateId(int year, int month, int day)
+    {
+        Integer dateId = null;
+        
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT id FROM dim_date WHERE year = ? "
+                  + "AND month = ? AND day = ?;");
+            
+            statement.setInt(1, year);
+            statement.setInt(2, month);
+            statement.setInt(3, day);
+            
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                dateId = result.getInt("id");
+            }
+            
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return dateId;
+    }
+    
     private int getMostRecentDateId(String id)
     {
         Integer dateId = null;
@@ -375,7 +804,7 @@ public class AirconDBDAO implements IAirconDAO
         return timeId;
     }
     
-    private Map<String, Integer> getCurrentDateTime()
+    private Map<String, Integer> getDateTime(Date date)
     {
         Map<String, Integer> currentDateTime = new HashMap<>();
         
@@ -383,13 +812,22 @@ public class AirconDBDAO implements IAirconDAO
         DateFormat monthFormat = new SimpleDateFormat("M");
         DateFormat dayFormat = new SimpleDateFormat("d");
         DateFormat hourFormat = new SimpleDateFormat("H");
-	Date now = new Date();
         
-        currentDateTime.put("year", Integer.parseInt(yearFormat.format(now)));
-        currentDateTime.put("month", Integer.parseInt(monthFormat.format(now)));
-        currentDateTime.put("day", Integer.parseInt(dayFormat.format(now)));
-        currentDateTime.put("hour", Integer.parseInt(hourFormat.format(now)));
+        currentDateTime.put("year", Integer.parseInt(yearFormat.format(date)));
+        currentDateTime.put("month", Integer.parseInt(monthFormat.format(date)));
+        currentDateTime.put("day", Integer.parseInt(dayFormat.format(date)));
+        currentDateTime.put("hour", Integer.parseInt(hourFormat.format(date)));
 
         return currentDateTime;
+    }
+    
+    private Date getOneDayBeforeDate()
+    {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.DAY_OF_YEAR, -1);
+        Date oneDayBefore = calendar.getTime();
+        
+        return oneDayBefore;
     }
 }

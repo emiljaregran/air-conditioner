@@ -82,7 +82,8 @@ public class AirconDAO implements IAirconDAO
         {
             if (aircon.getId().equals(id))
             {
-                electricitySummary = new ElectricitySummary();
+                electricitySummary = new ElectricitySummary(233, 1678.2f,
+                    "SEK", 2344, 9540, 1234, 16, 2);
                 
             }
         }
