@@ -8,6 +8,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -56,6 +57,13 @@ public class AirconDBDAO implements IAirconDAO
     public List<Aircon> getAllAircons()
     {
         List<Aircon> aircons = new ArrayList<>();
+        List<String> airconIds = getAllAirconIds();
+        
+        for (String airconId : airconIds)
+        {
+            aircons.add(getAirconById(airconId));
+        }
+        
         return aircons;
     }
     
@@ -199,6 +207,31 @@ public class AirconDBDAO implements IAirconDAO
     public String getHighestPowerConsumptionAircon()
     {
        return "B";
+    }
+    
+    private List<String> getAllAirconIds()
+    {
+        List<String> airconIds = new ArrayList<>();
+        
+        try (Connection connection = DriverManager.getConnection(
+                        dbSettings.getProperty("connectionString"),
+                        dbSettings.getProperty("name"),
+                        dbSettings.getProperty("password"));)
+        {
+            Statement statement = connection.createStatement();
+            ResultSet result = statement.executeQuery("SELECT name FROM dim_aircons");
+            
+            while (result.next())
+            {
+                airconIds.add(result.getString("name"));
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return airconIds;
     }
     
     private boolean currentHourMeasurementExists(String id)
