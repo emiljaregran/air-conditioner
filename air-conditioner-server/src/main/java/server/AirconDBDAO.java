@@ -117,14 +117,32 @@ public class AirconDBDAO implements IAirconDAO
     public void updateAircon(Aircon aircon)
     {
         Map<String, Integer> currentDateTime = getCurrentDateTime();
-     
+        String sqlQuery;
+        
         if (currentHourMeasurementExists(aircon.getId()))
         {
-            // UPDATE CURRENT ROW
+            sqlQuery = "UPDATE fact_readings " 
+                     + "INNER JOIN dim_aircons on dim_aircons.id = "
+                     + "fact_readings.airconId " 
+                     + "INNER JOIN dim_date on dim_date.id = "
+                     + "fact_readings.dateId " 
+                     + "INNER JOIN dim_time on dim_time.id = fact_readings.timeId "
+                     + "SET temperature = ?, powerConsumption = ?, "
+                     + "electricityPrice = ? WHERE name = ? " 
+                     + "AND year = ? AND month = ? "
+                     + "AND day = ? AND hour = ?;";
         }
         else
         {
-            // INSERT NEW ROW
+            sqlQuery = "INSERT INTO fact_readings(airconId, dateId, timeId, "
+                     + "temperature, powerConsumption, electricityPrice) "
+                     + "SELECT dim_aircons.id, dim_date.id, dim_time.id, ?, "
+                     + "?, ? FROM dim_aircons, dim_date, dim_time " 
+                     + "WHERE dim_aircons.name = ? " 
+                     + "AND dim_date.year = ? "
+                     + "AND dim_date.month = ? " 
+                     + "AND dim_date.day = ? "
+                     + "AND dim_time.hour = ?;";
         }
         
         try (Connection connection = DriverManager.getConnection(
@@ -132,16 +150,8 @@ public class AirconDBDAO implements IAirconDAO
                     dbSettings.getProperty("name"),
                     dbSettings.getProperty("password"));)
         {
-            PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO fact_readings(airconId, dateId, timeId, "
-                  + "temperature, powerConsumption, electricityPrice) "
-                  + "SELECT dim_aircons.id, dim_date.id, dim_time.id, ?, "
-                  + "?, ? FROM dim_aircons, dim_date, dim_time " 
-                  + "WHERE dim_aircons.name = ? " 
-                  + "AND dim_date.year = ? "
-                  + "AND dim_date.month = ? " 
-                  + "AND dim_date.day = ? "
-                  + "AND dim_time.hour = ?;");
+            connection.createStatement().execute("SET SQL_SAFE_UPDATES=0;");   
+            PreparedStatement statement = connection.prepareStatement(sqlQuery);
             
             statement.setObject(1, aircon.getTemperature());
             statement.setObject(2, aircon.getPowerConsumption());
@@ -153,6 +163,7 @@ public class AirconDBDAO implements IAirconDAO
             statement.setInt(8, currentDateTime.get("hour"));
             
             statement.executeUpdate();
+            connection.createStatement().execute("SET SQL_SAFE_UPDATES=1;");
         }
         catch (SQLException e)
         {
@@ -189,9 +200,9 @@ public class AirconDBDAO implements IAirconDAO
                     dbSettings.getProperty("password"));)
         {
             PreparedStatement statement = connection.prepareStatement(
-                    "SELECT name FROM fact_readings" 
+                    "SELECT name FROM fact_readings " 
                   + "INNER JOIN dim_aircons on dim_aircons.id = "
-                  + "fact_readings.airconId" 
+                  + "fact_readings.airconId " 
                   + "INNER JOIN dim_date on dim_date.id = fact_readings.dateId "
                   + "INNER JOIN dim_time on dim_time.id = fact_readings.timeId "
                   + "WHERE year = ? AND month = ? AND day = ? " 

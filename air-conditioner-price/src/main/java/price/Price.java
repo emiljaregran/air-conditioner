@@ -41,24 +41,24 @@ public class Price
         webClient.getOptions().setThrowExceptionOnScriptError(false);
         java.util.logging.Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.OFF);
         
-        double electricityPriceA = getElectricityPrice("https://elen.nu/timpriser-pa-el-for-elomrade-se4-malmo");
-        double electricityPriceB = getElectricityPrice("https://elen.nu/timpriser-pa-el-for-elomrade-se3-stockholm");
-        double electricityPriceC = getElectricityPrice("https://elen.nu/timpriser-pa-el-for-elomrade-se1-lulea");
+        double electricityPriceA = getElectricityPrice("https://elen.nu/timpriser-pa-el-for-elomrade-se4-malmo") + 1.0;
+        double electricityPriceB = getElectricityPrice("https://elen.nu/timpriser-pa-el-for-elomrade-se3-stockholm") + 1.0;
+        double electricityPriceC = getElectricityPrice("https://elen.nu/timpriser-pa-el-for-elomrade-se1-lulea") + 1.0;
         
         DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 	Date date = new Date();
         
-        System.out.println("[" + dateFormat.format(date) + "] Aircon A: " + 
-                electricityPriceA + " SEK/kWh");
-        System.out.println(sendElectricityPrice("A", electricityPriceA));
+        System.out.printf("[%s] Aircon A: %.4f SEK/kWh\n", 
+                          dateFormat.format(date), electricityPriceA);
+        System.out.println(sendElectricityPrice("A", electricityPriceA) + "\n");
         
-        System.out.println("\n[" + dateFormat.format(date) + "] Aircon B: " +
-                electricityPriceB + " SEK/kWh");
-        System.out.println(sendElectricityPrice("B", electricityPriceB));
+        System.out.printf("[%s] Aircon B: %.4f SEK/kWh\n", 
+                          dateFormat.format(date), electricityPriceB);
+        System.out.println(sendElectricityPrice("B", electricityPriceB) + "\n");
         
-        System.out.println("\n[" + dateFormat.format(date) + "] Aircon C: " +
-                electricityPriceC + " SEK/kWh");
-        System.out.println(sendElectricityPrice("C", electricityPriceC));
+        System.out.printf("[%s] Aircon C: %.4f SEK/kWh\n", 
+                          dateFormat.format(date), electricityPriceC);
+        System.out.println(sendElectricityPrice("C", electricityPriceC) + "\n");
     }
     
     private String sendElectricityPrice(String name, double price)
