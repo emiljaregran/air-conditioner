@@ -8,11 +8,12 @@ public class Aircon
     private Integer powerConsumption;
     private Float electricityPrice;
     private String electricityPriceUnit;
+    private String lastUpdate;
     
     
     public Aircon(String id, Float temperature, String temperatureUnit,
             Integer powerConsumption, Float electricityPrice,
-            String electricityPriceUnit)
+            String electricityPriceUnit, String lastUpdate)
     {
         this.id = id;
         this.temperature = temperature;
@@ -20,6 +21,7 @@ public class Aircon
         this.powerConsumption = powerConsumption;
         this.electricityPrice = electricityPrice;
         this.electricityPriceUnit = electricityPriceUnit;
+        this.lastUpdate = lastUpdate;
     }
     
     public String getId()

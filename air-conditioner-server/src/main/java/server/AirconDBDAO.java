@@ -69,6 +69,7 @@ public class AirconDBDAO implements IAirconDAO
             Integer powerConsumption = null;
             Float electricityPrice = null;
             String electricityPriceUnit = null;
+            String lastUpdate = null;
         
             int dateId = getMostRecentDateId(id);
             int timeId = getMostRecentTimeId(id, dateId);
@@ -80,10 +81,14 @@ public class AirconDBDAO implements IAirconDAO
             {
                 PreparedStatement statement = connection.prepareStatement(
                         "SELECT temperature, powerConsumption, electricityPrice, "
-                      + "temperatureUnit, electricityPriceUnit " 
+                      + "temperatureUnit, electricityPriceUnit, "
+                      + "year, month, day, hour " 
                       + "FROM fact_readings "
                       + "INNER JOIN dim_aircons on dim_aircons.id = "
-                      + "fact_readings.airconId WHERE fact_readings.dateId = ? " 
+                      + "fact_readings.airconId "
+                      + "INNER JOIN dim_date on dim_date.id = fact_readings.dateId "
+                      + "INNER JOIN dim_time on dim_time.id = fact_readings.timeId "
+                      + "WHERE fact_readings.dateId = ? " 
                       + "AND fact_readings.timeId = ? " 
                       + "AND dim_aircons.name = ?;");
 
@@ -99,10 +104,17 @@ public class AirconDBDAO implements IAirconDAO
                     powerConsumption = result.getInt("powerConsumption");
                     electricityPrice = result.getFloat("electricityPrice");
                     electricityPriceUnit = result.getString("electricityPriceUnit");
+                    
+                    lastUpdate = String.format("%d-%02d-%02d %02d:00",
+                            result.getInt("year"),
+                            result.getInt("month"),
+                            result.getInt("day"),
+                            result.getInt("hour"));
                 }
-
+                
                 return new Aircon(id, temperature, temperatureUnit,
-                        powerConsumption, electricityPrice, electricityPriceUnit);
+                        powerConsumption, electricityPrice,
+                        electricityPriceUnit, lastUpdate);
             }
             catch (SQLException e)
             {
