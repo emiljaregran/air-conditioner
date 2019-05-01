@@ -1,32 +1,21 @@
 package server;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 public class TemperatureSummary
 {
-    private final Map<Integer, Float> temperatures = new HashMap<>();
-    private Float averageTemperature = null;
-    private Float maxTemperature = null;
-    private Float minTemperature = null;
+    private LinkedHashMap<Integer, Float> temperatures;
+    private double averageTemperature;
+    private double maxTemperature;
+    private double minTemperature;
     
-    public void addTemperature(int hour, float temperature)
+    public TemperatureSummary(LinkedHashMap<Integer, Float> temperatures,
+            float averageTemperature, float maxTemperature,
+            float minTemperature)
     {
-        temperatures.put(hour, temperature);
-    }
-    
-    public void setAverageTemperature(float averageTemperature)
-    {
-        this.averageTemperature = averageTemperature;
-    }
-    
-    public void setMaxTemperature(float maxTemperature)
-    {
-        this.maxTemperature = maxTemperature;
-    }
-    
-    public void setMinTemperature(float minTemperature)
-    {
-        this.minTemperature = minTemperature;
+        this.temperatures = temperatures;
+        this.averageTemperature = Math.round(averageTemperature * 10) / 10.0d;
+        this.maxTemperature = Math.round(maxTemperature * 10) / 10.0d;
+        this.minTemperature = Math.round(minTemperature * 10) / 10.0d;
     }
 }

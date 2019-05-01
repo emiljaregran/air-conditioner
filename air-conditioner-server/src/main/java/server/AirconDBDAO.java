@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -195,7 +196,38 @@ public class AirconDBDAO implements IAirconDAO
     @Override
     public TemperatureSummary getTemperatureSummary(String id)
     {
-        return new TemperatureSummary();
+        if (!airconExists(id))
+        {
+            return null;
+        }
+        
+        Map<String, Integer> current = getDateTime(new Date());
+        Map<String, Integer> oneDayBefore = getDateTime(getOneDayBeforeDate());
+        
+        int currentDateId = getDateId(current.get("year"), current.get("month"),
+                                      current.get("day"));
+        
+        int oneDayBeforeDateId = getDateId(oneDayBefore.get("year"),
+                            oneDayBefore.get("month"), oneDayBefore.get("day")); 
+        
+        LinkedHashMap<Integer, Float> temperatures = getTemperatures24h(id,
+                currentDateId, oneDayBeforeDateId, current.get("hour"),
+                oneDayBefore.get("hour"));
+        
+        float averateTemperature = getAverageTemperature24h(id,
+                currentDateId, oneDayBeforeDateId, current.get("hour"),
+                oneDayBefore.get("hour"));
+        
+        float maxTemperature = getMaxTemperature24h(id,
+                currentDateId, oneDayBeforeDateId, current.get("hour"),
+                oneDayBefore.get("hour"));
+        
+        float minTemperature = getMinTemperature24h(id,
+                currentDateId, oneDayBeforeDateId, current.get("hour"),
+                oneDayBefore.get("hour"));
+        
+        return new TemperatureSummary(temperatures, averateTemperature,
+                maxTemperature, minTemperature);
     }
     
     @Override
@@ -256,6 +288,176 @@ public class AirconDBDAO implements IAirconDAO
     public String getHighestPowerConsumptionAircon()
     {
        return "B";
+    }
+    
+    private float getMinTemperature24h(String id, int currentDateId, 
+            int oneDayBeforeDateId, int currentHour, int oneDayBeforeHour)
+    {
+        Float minTemperature = null;
+        
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT temperature "
+                  + "FROM fact_readings "
+                  + "INNER JOIN dim_aircons on dim_aircons.id = "
+                  + "fact_readings.airconId "
+                  + "RIGHT JOIN dim_date on dim_date.id = fact_readings.dateId "
+                  + "LEFT JOIN dim_time on dim_time.id = fact_readings.timeId "
+                  + "WHERE name = ? "
+                  + "AND ((dateId = ? AND hour BETWEEN ? AND 23) "
+                  + "OR (dateId = ? AND hour BETWEEN 0 AND ?)) "
+                  + "ORDER BY temperature ASC LIMIT 1;");
+            
+            statement.setString(1, id);
+            statement.setInt(2, oneDayBeforeDateId);
+            statement.setInt(3, oneDayBeforeHour);
+            statement.setInt(4, currentDateId);
+            statement.setInt(5, currentHour);
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                minTemperature = result.getFloat("temperature");
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return minTemperature;
+    }
+    
+    private float getMaxTemperature24h(String id, int currentDateId, 
+            int oneDayBeforeDateId, int currentHour, int oneDayBeforeHour)
+    {
+        Float maxTemperature = null;
+        
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT temperature "
+                  + "FROM fact_readings "
+                  + "INNER JOIN dim_aircons on dim_aircons.id = "
+                  + "fact_readings.airconId "
+                  + "RIGHT JOIN dim_date on dim_date.id = fact_readings.dateId "
+                  + "LEFT JOIN dim_time on dim_time.id = fact_readings.timeId "
+                  + "WHERE name = ? "
+                  + "AND ((dateId = ? AND hour BETWEEN ? AND 23) "
+                  + "OR (dateId = ? AND hour BETWEEN 0 AND ?)) "
+                  + "ORDER BY temperature DESC LIMIT 1;");
+            
+            statement.setString(1, id);
+            statement.setInt(2, oneDayBeforeDateId);
+            statement.setInt(3, oneDayBeforeHour);
+            statement.setInt(4, currentDateId);
+            statement.setInt(5, currentHour);
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                maxTemperature = result.getFloat("temperature");
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return maxTemperature;
+    }
+    
+    private float getAverageTemperature24h(String id, int currentDateId, 
+            int oneDayBeforeDateId, int currentHour, int oneDayBeforeHour)
+    {
+        Float averageTemperature = null;
+        
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT AVG(temperature) AS averageTemperature "
+                  + "FROM fact_readings "
+                  + "INNER JOIN dim_aircons on dim_aircons.id = "
+                  + "fact_readings.airconId " 
+                  + "RIGHT JOIN dim_date on dim_date.id = fact_readings.dateId "
+                  + "LEFT JOIN dim_time on dim_time.id = fact_readings.timeId "
+                  + "WHERE name = ? "
+                  + "AND ((dateId = ? AND hour BETWEEN ? AND 23) "
+                  + "OR (dateId = ? AND hour BETWEEN 0 AND ?));");
+            
+            statement.setString(1, id);
+            statement.setInt(2, oneDayBeforeDateId);
+            statement.setInt(3, oneDayBeforeHour);
+            statement.setInt(4, currentDateId);
+            statement.setInt(5, currentHour);
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                averageTemperature = result.getFloat("averageTemperature");
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return averageTemperature;
+    }
+    
+    private LinkedHashMap<Integer, Float> getTemperatures24h(String id, 
+            int currentDateId, int oneDayBeforeDateId, int currentHour,
+            int oneDayBeforeHour)
+    {
+        LinkedHashMap<Integer, Float> temperatures = new LinkedHashMap<>();
+        
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT temperature, hour " 
+                  + "FROM fact_readings "
+                  + "INNER JOIN dim_aircons on dim_aircons.id = "
+                  + "fact_readings.airconId " 
+                  + "RIGHT JOIN dim_date on dim_date.id = fact_readings.dateId "
+                  + "LEFT JOIN dim_time on dim_time.id = fact_readings.timeId "
+                  + "WHERE name = ? " 
+                  + "AND ((dateId = ? AND hour BETWEEN ? AND 23) "
+                  + "OR (dateId = ? AND hour BETWEEN 0 AND ?))"
+                  + "ORDER BY hour;");
+            
+            statement.setString(1, id);
+            statement.setInt(2, oneDayBeforeDateId);
+            statement.setInt(3, oneDayBeforeHour);
+            statement.setInt(4, currentDateId);
+            statement.setInt(5, currentHour);
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                float temperature = result.getFloat("temperature");
+                int hour = result.getInt("hour");
+                temperatures.put(hour, temperature);
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return temperatures;
     }
     
     private float getElectricityCost24h(String id, int currentDateId, 
@@ -729,8 +931,7 @@ public class AirconDBDAO implements IAirconDAO
             while (result.next())
             {
                 dateId = result.getInt("id");
-            }
-            
+            }  
         }
         catch (SQLException e)
         {

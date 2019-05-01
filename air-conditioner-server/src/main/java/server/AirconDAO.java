@@ -1,6 +1,7 @@
 package server;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class AirconDAO implements IAirconDAO
@@ -57,16 +58,9 @@ public class AirconDAO implements IAirconDAO
         {
             if (aircon.getId().equals(id))
             {
-                temperatureSummary = new TemperatureSummary();
-        
-                for (int i = 0; i < 24; i++)
-                {
-                    temperatureSummary.addTemperature(i, i + 2);  
-                }
-
-                temperatureSummary.setAverageTemperature(14.4f);
-                temperatureSummary.setMaxTemperature(28.2f);
-                temperatureSummary.setMinTemperature(2.6f);
+                LinkedHashMap<Integer, Float> temperatures = new LinkedHashMap<>();
+                temperatureSummary = new TemperatureSummary(temperatures,
+                                                            1.0f, 2.0f, 3.0f);
             }
         }
         
