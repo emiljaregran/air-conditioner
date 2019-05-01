@@ -9,5 +9,5 @@ interface IAirconDAO
     public void updateAircon(Aircon aircon);
     public TemperatureSummary getTemperatureSummary(String id);
     public ElectricitySummary getElectricitySummary(String id);
-    public String getHighestPowerConsumptionAircon();
+    public HighestConsumption getHighestPowerConsumptionAircon();
 }

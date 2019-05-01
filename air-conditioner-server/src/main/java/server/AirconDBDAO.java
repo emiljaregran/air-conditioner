@@ -285,9 +285,55 @@ public class AirconDBDAO implements IAirconDAO
     }
     
     @Override
-    public String getHighestPowerConsumptionAircon()
+    public HighestConsumption getHighestPowerConsumptionAircon()
     {
-       return "B";
+        String airconName = null;
+        Float consumption = null;
+
+        Map<String, Integer> current = getDateTime(new Date());
+        Map<String, Integer> oneDayBefore = getDateTime(getOneDayBeforeDate());
+        
+        int currentDateId = getDateId(current.get("year"), current.get("month"),
+                                      current.get("day"));
+        
+        int oneDayBeforeDateId = getDateId(oneDayBefore.get("year"),
+                            oneDayBefore.get("month"), oneDayBefore.get("day"));
+       
+        try (Connection connection = DriverManager.getConnection(
+                    dbSettings.getProperty("connectionString"),
+                    dbSettings.getProperty("name"),
+                    dbSettings.getProperty("password"));)
+        {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT SUM(powerConsumption) AS totalConsumption, name "
+                  + "FROM fact_readings "
+                  + "INNER JOIN dim_aircons on dim_aircons.id = "
+                  + "fact_readings.airconId " 
+                  + "RIGHT JOIN dim_date on dim_date.id = fact_readings.dateId "
+                  + "LEFT JOIN dim_time on dim_time.id = fact_readings.timeId "
+                  + "WHERE ((dateId = ? AND hour BETWEEN ? AND 23) "
+                  + "OR (dateId = ? AND hour BETWEEN 0 AND ?)) "
+                  + "GROUP BY name "
+                  + "ORDER BY totalConsumption DESC LIMIT 1;");
+            
+            statement.setInt(1, oneDayBeforeDateId);
+            statement.setInt(2, oneDayBefore.get("hour"));
+            statement.setInt(3, currentDateId);
+            statement.setInt(4, current.get("hour"));
+            ResultSet result = statement.executeQuery();
+            
+            while (result.next())
+            {
+                consumption = result.getInt("totalConsumption") / 1000.000f;
+                airconName = result.getString("name");
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+       
+       return new HighestConsumption(airconName, consumption);
     }
     
     private float getMinTemperature24h(String id, int currentDateId, 

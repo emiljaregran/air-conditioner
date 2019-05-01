@@ -86,8 +86,8 @@ public class AirconDAO implements IAirconDAO
     }
     
     @Override
-    public String getHighestPowerConsumptionAircon()
+    public HighestConsumption getHighestPowerConsumptionAircon()
     {
-        return "B";
+        return new HighestConsumption("B", 1234.0f);
     }
 }

@@ -235,11 +235,8 @@ public class AirconService
     @Produces (MediaType.APPLICATION_JSON)
     public Response getHighestPowerConsumptionAircon()
     {
-        String airconId = DAO.getHighestPowerConsumptionAircon();
-        RESTResponse restResponse = new RESTResponse();
-        restResponse.setHighestPowerConsumptionAircon(airconId);
-        
-        return Response.ok(gson.toJson(restResponse)).build();
+        HighestConsumption highestConsumption = DAO.getHighestPowerConsumptionAircon();
+        return Response.ok(gson.toJson(highestConsumption)).build();
     }
     
     private Response wrongJsonFormat(String parameter)

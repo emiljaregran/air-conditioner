@@ -37,9 +37,4 @@ public class RESTResponse
     {
         this.electricityPrice = electricityPrice;
     }
-    
-    public void setHighestPowerConsumptionAircon(String id)
-    {
-        this.id = id;
-    }
 }
