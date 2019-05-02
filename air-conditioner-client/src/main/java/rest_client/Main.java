@@ -28,7 +28,7 @@ public class Main
         
         while (run)
         {
-            clearScreen();
+            //clearScreen();
             printMenu();
             String menuChoice = getUserInput();
             
