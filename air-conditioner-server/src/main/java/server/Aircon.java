@@ -39,6 +39,11 @@ public class Aircon
         this.temperature = temperature;
     }
     
+    public String getTemperatureUnit()
+    {
+        return temperatureUnit;
+    }
+    
     public Integer getPowerConsumption()
     {
         return powerConsumption;
@@ -57,5 +62,10 @@ public class Aircon
     public void setElectricityPrice(float electricityPrice)
     {
         this.electricityPrice = electricityPrice;
+    }
+    
+    public String getElectricityPriceUnit()
+    {
+        return electricityPriceUnit;
     }
 }

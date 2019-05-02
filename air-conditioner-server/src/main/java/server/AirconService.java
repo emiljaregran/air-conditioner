@@ -61,6 +61,8 @@ public class AirconService
         
         RESTResponse restResponse = new RESTResponse();
         restResponse.setTemperature(aircon.getTemperature());
+        restResponse.setTemperatureUnit(aircon.getTemperatureUnit());
+        
         return Response.ok(gson.toJson(restResponse)).build();
     }
     
@@ -163,6 +165,8 @@ public class AirconService
         
         RESTResponse restResponse = new RESTResponse();
         restResponse.setElectricityPrice(aircon.getElectricityPrice());
+        restResponse.setElectricityPriceUnit(aircon.getElectricityPriceUnit());
+        
         return Response.ok(gson.toJson(restResponse)).build();
     }
     

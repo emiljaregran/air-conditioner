@@ -3,10 +3,13 @@ package rest_client;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import java.util.Scanner;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 public class Main
@@ -25,39 +28,63 @@ public class Main
         
         while (run)
         {
+            clearScreen();
             printMenu();
             String menuChoice = getUserInput();
+            
+            if (menuChoice.equals("0") || menuChoice.equals("1") || 
+                menuChoice.equals("2") || menuChoice.equals("3") || 
+                menuChoice.equals("4") || menuChoice.equals("5") ||
+                menuChoice.equals("6") || menuChoice.equals("7") || 
+                menuChoice.equals("8"))
+            {
+                System.out.println("Which aircon?");
+            }
 
             switch (menuChoice)
             {
                 case "0":
+                    getTemperature(getUserInput());
+                    pauseOutput();
                     break;
                     
                 case "1":
+                    getPowerConsumption(getUserInput());
+                    pauseOutput();
                     break;
 
                 case "2":
+                    getElectricityPrice(getUserInput());
+                    pauseOutput();
                     break;
                     
                 case "3":
+                    getFullSummary(getUserInput());
+                    pauseOutput();
                     break;
                     
                 case "4":
+                    setTemperature(getUserInput());
                     break;
                     
                 case "5":
+                    setElectricityConsumption(getUserInput());
                     break;
                     
                 case "6":
+                    setElectricityPrice(getUserInput());
                     break;
                     
                 case "7":
+                    getTemperatureSummary24h(getUserInput());
                     break;
                     
                 case "8":
+                    getElectricitySummary24h(getUserInput());
                     break;
                     
                 case "9":
+                    getHighestElectricityConsumer24h();
                     break;
 
                 case "exit":
@@ -84,7 +111,7 @@ public class Main
         System.out.println("\nAircon REST Client");
         System.out.println("------------------");
         System.out.println("0. GET Temperature");
-        System.out.println("1. GET Electricity consumption");
+        System.out.println("1. GET Power consumption");
         System.out.println("2. GET Electricity price");
         System.out.println("3. GET Full summary\n");
         System.out.println("4. SET Temperature");
@@ -93,6 +120,140 @@ public class Main
         System.out.println("7. GET Temperature summary last 24h");
         System.out.println("8. GET Electricity summary last 24h");
         System.out.println("9. GET Highest electricity consumer 24h\n"); 
+    }
+    
+    private void pauseOutput()
+    {
+        System.out.println("\nPress enter to continue...");
+        Scanner scanner = new Scanner(System.in);
+        scanner.nextLine();
+    }
+    
+    private void clearScreen()
+    {  
+        System.out.print("\033[H\033[2J");  
+        System.out.flush();  
+    }
+    
+    private void getTemperature(String airconId)
+    {
+        String json;
+        RESTResponse restResponse = new RESTResponse();
+        
+        try
+        {
+           json = service.path("rest/aircons/" + airconId + "/temperature")
+                .accept(MediaType.APPLICATION_JSON).get(String.class);
+        }
+        catch (UniformInterfaceException e)
+        {
+            restResponse.setCode(e.getResponse().getStatus());
+            restResponse.setMessage("Aircon " + airconId + " not found.");
+            System.out.println(restResponse.getErrorMessage());
+            return;
+        }      
+        
+        restResponse = new Gson().fromJson(json, RESTResponse.class);
+        System.out.println(restResponse.getTemperature());
+    }
+    
+    private void getPowerConsumption(String airconId)
+    {
+        String json;
+        RESTResponse restResponse = new RESTResponse();
+        
+        try
+        {
+            json = service.path("rest/aircons/" + airconId + "/powerConsumption")
+                .accept(MediaType.APPLICATION_JSON).get(String.class);
+        }
+        catch (UniformInterfaceException e)
+        {
+            restResponse.setCode(e.getResponse().getStatus());
+            restResponse.setMessage("Aircon " + airconId + " not found.");
+            System.out.println(restResponse.getErrorMessage());
+            return;
+        }
+        
+        restResponse = new Gson().fromJson(json, RESTResponse.class);
+        System.out.println(restResponse.getPowerConsumption());
+    }
+    
+    private void getElectricityPrice(String airconId)
+    {
+        String json;
+        RESTResponse restResponse = new RESTResponse();
+        
+        try
+        {
+            json = service.path("rest/aircons/" + airconId + "/electricityPrice")
+                .accept(MediaType.APPLICATION_JSON).get(String.class);
+        }
+        catch (UniformInterfaceException e)
+        {
+            restResponse.setCode(e.getResponse().getStatus());
+            restResponse.setMessage("Aircon " + airconId + " not found.");
+            System.out.println(restResponse.getErrorMessage());
+            return;
+        }
+        
+        restResponse = new Gson().fromJson(json, RESTResponse.class);
+        System.out.println(restResponse.getElectricityPrice());
+    }
+    
+    private void getFullSummary(String airconId)
+    {
+        String json;
+        RESTResponse restResponse = new RESTResponse();
+        
+        try
+        {
+            json = service.path("rest/aircons/" + airconId)
+                .accept(MediaType.APPLICATION_JSON).get(String.class);
+        }
+        catch (UniformInterfaceException e)
+        {
+            restResponse.setCode(e.getResponse().getStatus());
+            restResponse.setMessage("Aircon " + airconId + " not found.");
+            System.out.println(restResponse.getErrorMessage());
+            return;
+        }
+        
+        restResponse = new Gson().fromJson(json, RESTResponse.class);
+        System.out.println(restResponse.getTemperature());
+        System.out.println(restResponse.getPowerConsumption());
+        System.out.println(restResponse.getElectricityPrice());
+        System.out.println(restResponse.getLastUpdate());
+    }
+    
+    private void setTemperature(String airconId)
+    {
+        
+    }
+    
+    private void setElectricityConsumption(String airconId)
+    {
+        
+    }
+    
+    private void setElectricityPrice(String airconId)
+    {
+        
+    }
+    
+    private void getTemperatureSummary24h(String airconId)
+    {
+        
+    }
+    
+    private void getElectricitySummary24h(String airconId)
+    {
+        
+    }
+    
+    private void getHighestElectricityConsumer24h()
+    {
+        
     }
     
     public static void main(String[] args)
