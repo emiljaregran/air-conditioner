@@ -26,7 +26,8 @@ public class RESTResponse
     
     public String getResponse()
     {
-        return "Code: " + code + " Message: " + message;
+        return "(" + response.get(0).getCode() + ") "
+                + response.get(0).getMessage();
     }
     
     public String getTemperature()

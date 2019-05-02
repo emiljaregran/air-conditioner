@@ -10,4 +10,14 @@ public class ResponseBody
         this.code = code;
         this.message = message;
     }
+    
+    public int getCode()
+    {
+        return code;
+    }
+    
+    public String getMessage()
+    {
+        return message;
+    }
 }
