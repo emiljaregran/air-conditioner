@@ -13,6 +13,16 @@ public class RESTResponse
     private String temperatureUnit;
     private final LinkedHashMap<Integer, Float> temperatures = new LinkedHashMap<>();
     private int powerConsumption;
+    
+    private float consumedElectricity;
+    private String consumedElectricityUnit;
+    private float electricityCost;
+    private int averagePowerConsumption;
+    private int maxPowerConsumption;
+    private int minPowerConsumption;
+    private int highestElectricityPriceHour;
+    private int lowestElectricityPriceHour;
+    
     private float electricityPrice;
     private String electricityPriceUnit;
     private String lastUpdate;
@@ -69,9 +79,36 @@ public class RESTResponse
             stringBuilder.append(temperatureUnit);
         });
         
-        stringBuilder.append("\n\nAverage temperature:\t").append(averageTemperature).append(" ").append(temperatureUnit);
-        stringBuilder.append("\nMax temperature:\t").append(maxTemperature).append(" ").append(temperatureUnit);
-        stringBuilder.append("\nMin temperature:\t").append(minTemperature).append(" ").append(temperatureUnit);
+        stringBuilder.append("\n\nAverage temperature:\t").
+                append(averageTemperature).append(" ").append(temperatureUnit);
+        stringBuilder.append("\nMax temperature:\t").append(maxTemperature).
+                append(" ").append(temperatureUnit);
+        stringBuilder.append("\nMin temperature:\t").append(minTemperature).
+                append(" ").append(temperatureUnit);
+        
+        return stringBuilder.toString();
+    }
+    
+    public String getElectricitySummary24h()
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        
+        stringBuilder.append("\nConsumed electricity:\t\t").
+                append(consumedElectricity).append("\t").
+                append(consumedElectricityUnit); 
+        stringBuilder.append("\nElectricity cost:\t\t").
+                append(electricityCost).append("\t").
+                append(electricityPriceUnit);
+        stringBuilder.append("\nAverage power consumption:\t").
+                append(averagePowerConsumption).append("\tW");
+        stringBuilder.append("\nMax power consumption:\t\t").
+                append(maxPowerConsumption).append("\tW");
+        stringBuilder.append("\nMin power consumption:\t\t").
+                append(minPowerConsumption).append("\tW");
+        stringBuilder.append("\nHighest electricity price hour:\t").
+                append(highestElectricityPriceHour).append(":00");
+        stringBuilder.append("\nLowest electricity price hour:\t").
+                append(lowestElectricityPriceHour).append(":00");
         
         return stringBuilder.toString();
     }
