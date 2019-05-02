@@ -1,3 +1,3 @@
 # Air Conditioner
 
-![Screenshot](img/SQL_Schema.png "SQL Schema")
+![Screenshot](img/SQL_schema.png "SQL schema")
