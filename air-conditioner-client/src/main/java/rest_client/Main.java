@@ -69,23 +69,28 @@ public class Main
                     break;
                     
                 case "5":
-                    setElectricityConsumption(getUserInput());
+                    setPowerConsumption(getUserInput());
+                    pauseOutput();
                     break;
                     
                 case "6":
                     setElectricityPrice(getUserInput());
+                    pauseOutput();
                     break;
                     
                 case "7":
                     getTemperatureSummary24h(getUserInput());
+                    pauseOutput();
                     break;
                     
                 case "8":
                     getElectricitySummary24h(getUserInput());
+                    pauseOutput();
                     break;
                     
                 case "9":
                     getHighestElectricityConsumer24h();
+                    pauseOutput();
                     break;
 
                 case "exit":
@@ -116,7 +121,7 @@ public class Main
         System.out.println("2. GET Electricity price");
         System.out.println("3. GET Full summary");
         System.out.println("4. SET Temperature");
-        System.out.println("5. SET Electricity consumption");
+        System.out.println("5. SET Power consumption");
         System.out.println("6. SET Electricity price");
         System.out.println("7. GET Temperature summary last 24h");
         System.out.println("8. GET Electricity summary last 24h");
@@ -238,7 +243,8 @@ public class Main
         {
             restRequest.setTemperature(Double.valueOf(getUserInput()));
             String request = gson.toJson(restRequest);
-            json = service.path("rest/aircons/" + airconId + "/temperature").accept(MediaType.APPLICATION_JSON).post(String.class, request);
+            json = service.path("rest/aircons/" + airconId + "/temperature").
+                    accept(MediaType.APPLICATION_JSON).post(String.class, request);
         }
         catch (NumberFormatException e)
         {
@@ -257,14 +263,66 @@ public class Main
         System.out.println(restResponse.getResponse());
     }
     
-    private void setElectricityConsumption(String airconId)
+    private void setPowerConsumption(String airconId)
     {
+        String json;
+        RESTRequest restRequest = new RESTRequest();
+        RESTResponse restResponse = new RESTResponse();    
+        System.out.print("Enter new power consumption ");
+
+        try
+        {
+            restRequest.setPowerConsumption(Integer.valueOf(getUserInput()));
+            String request = gson.toJson(restRequest);
+            json = service.path("rest/aircons/" + airconId + "/powerConsumption")
+                    .accept(MediaType.APPLICATION_JSON).post(String.class, request);
+        }
+        catch (NumberFormatException e)
+        {
+            System.out.println("ERROR: Not a valid number.");
+            return;
+        }
+        catch (UniformInterfaceException e)
+        {
+            restResponse.setCode(e.getResponse().getStatus());
+            restResponse.setMessage("Aircon " + airconId + " not found.");
+            System.out.println(restResponse.getErrorMessage());
+            return;
+        }
         
+        restResponse = new Gson().fromJson(json, RESTResponse.class);
+        System.out.println(restResponse.getResponse());
     }
     
     private void setElectricityPrice(String airconId)
     {
+        String json;
+        RESTRequest restRequest = new RESTRequest();
+        RESTResponse restResponse = new RESTResponse();    
+        System.out.print("Enter new electricity price ");
+
+        try
+        {
+            restRequest.setElectricityPrice(Double.valueOf(getUserInput()));
+            String request = gson.toJson(restRequest);
+            json = service.path("rest/aircons/" + airconId + "/electricityPrice")
+                    .accept(MediaType.APPLICATION_JSON).post(String.class, request);
+        }
+        catch (NumberFormatException e)
+        {
+            System.out.println("ERROR: Not a valid number.");
+            return;
+        }
+        catch (UniformInterfaceException e)
+        {
+            restResponse.setCode(e.getResponse().getStatus());
+            restResponse.setMessage("Aircon " + airconId + " not found.");
+            System.out.println(restResponse.getErrorMessage());
+            return;
+        }
         
+        restResponse = new Gson().fromJson(json, RESTResponse.class);
+        System.out.println(restResponse.getResponse());
     }
     
     private void getTemperatureSummary24h(String airconId)
