@@ -231,7 +231,7 @@ public class AirconService
     }
     
     @GET
-    @Path("/highestPowerConsumption")
+    @Path("/highestPowerConsumption24h")
     @Produces (MediaType.APPLICATION_JSON)
     public Response getHighestPowerConsumptionAircon()
     {
