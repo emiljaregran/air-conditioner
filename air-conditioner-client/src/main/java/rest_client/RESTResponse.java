@@ -59,7 +59,8 @@ public class RESTResponse
     
     public String getElectricityPrice()
     {
-        return "Electricity price: " + electricityPrice + " " + electricityPriceUnit;
+        return "Electricity price: " + electricityPrice + " " 
+                + electricityPriceUnit + "/kWh";
     }
     
     public String getLastUpdate()
@@ -119,7 +120,9 @@ public class RESTResponse
         StringBuilder stringBuilder = new StringBuilder();
         
         stringBuilder.append("\nAircon:\t\t\t").append(id);
-        stringBuilder.append("\nPower consumption:\t").append(consumedElectricity).append("\t").append(consumedElectricityUnit);
+        stringBuilder.append("\nPower consumption:\t").
+                append(consumedElectricity).append("\t").
+                append(consumedElectricityUnit);
         
         return stringBuilder.toString();
     }
