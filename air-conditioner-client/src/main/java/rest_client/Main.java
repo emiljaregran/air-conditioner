@@ -89,7 +89,7 @@ public class Main
                     break;
                     
                 case "9":
-                    getHighestElectricityConsumer24h();
+                    getHighestPowerConsumption24h();
                     pauseOutput();
                     break;
 
@@ -125,7 +125,7 @@ public class Main
         System.out.println("6. SET Electricity price");
         System.out.println("7. GET Temperature summary last 24h");
         System.out.println("8. GET Electricity summary last 24h");
-        System.out.println("9. GET Highest electricity consumer 24h\n"); 
+        System.out.println("9. GET Highest power consumer 24h\n"); 
     }
     
     private void pauseOutput()
@@ -369,9 +369,13 @@ public class Main
         System.out.println(restResponse.getElectricitySummary24h());
     }
     
-    private void getHighestElectricityConsumer24h()
+    private void getHighestPowerConsumption24h()
     {
-        
+        String json = service.path("rest/aircons/highestPowerConsumption24h")
+                .accept(MediaType.APPLICATION_JSON).get(String.class);
+            
+        RESTResponse restResponse = new Gson().fromJson(json, RESTResponse.class);
+        System.out.println(restResponse.gethighestPowerConsumption24h());
     }
     
     public static void main(String[] args)

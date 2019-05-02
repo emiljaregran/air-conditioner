@@ -5,6 +5,7 @@ import java.util.List;
 
 public class RESTResponse 
 {
+    private String id;
     private int code;
     private float temperature;
     private float averageTemperature;
@@ -109,6 +110,16 @@ public class RESTResponse
                 append(highestElectricityPriceHour).append(":00");
         stringBuilder.append("\nLowest electricity price hour:\t").
                 append(lowestElectricityPriceHour).append(":00");
+        
+        return stringBuilder.toString();
+    }
+    
+    public String gethighestPowerConsumption24h()
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        
+        stringBuilder.append("\nAircon:\t\t\t").append(id);
+        stringBuilder.append("\nPower consumption:\t").append(consumedElectricity).append("\t").append(consumedElectricityUnit);
         
         return stringBuilder.toString();
     }
