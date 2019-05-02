@@ -216,6 +216,8 @@ public class AirconService
             return airconNotFound(id);
         }
         
+        temperatureSummary.setTemperatureUnit(DAO.getAirconById(id).getTemperatureUnit());
+        
         return Response.ok(gson.toJson(temperatureSummary)).build();
     }
 

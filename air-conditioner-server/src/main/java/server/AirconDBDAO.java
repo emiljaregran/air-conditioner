@@ -482,7 +482,7 @@ public class AirconDBDAO implements IAirconDAO
                   + "WHERE name = ? " 
                   + "AND ((dateId = ? AND hour BETWEEN ? AND 23) "
                   + "OR (dateId = ? AND hour BETWEEN 0 AND ?))"
-                  + "ORDER BY hour;");
+                  + "ORDER BY fact_readings.id DESC;");
             
             statement.setString(1, id);
             statement.setInt(2, oneDayBeforeDateId);

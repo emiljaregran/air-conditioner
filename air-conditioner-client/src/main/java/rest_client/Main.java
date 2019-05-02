@@ -327,7 +327,24 @@ public class Main
     
     private void getTemperatureSummary24h(String airconId)
     {
+        String json;
+        RESTResponse restResponse = new RESTResponse();
         
+        try
+        {
+            json = service.path("rest/aircons/" + airconId + "/temperatureSummary24h")
+                .accept(MediaType.APPLICATION_JSON).get(String.class);
+        }
+        catch (UniformInterfaceException e)
+        {
+            restResponse.setCode(e.getResponse().getStatus());
+            restResponse.setMessage("Aircon " + airconId + " not found.");
+            System.out.println(restResponse.getErrorMessage());
+            return;
+        }
+        
+        restResponse = new Gson().fromJson(json, RESTResponse.class);
+        System.out.println(restResponse.getTemperatureSummary24h());
     }
     
     private void getElectricitySummary24h(String airconId)
